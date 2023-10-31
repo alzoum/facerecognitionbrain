@@ -6,17 +6,14 @@ import ParticlesBg from 'particles-bg'
 import Image from '../Component/ImageFormLink/Image';
 import Rank from '../Component/Rank/Rank';
 import { Component } from 'react';
-import image from '../Component/ImageFormLink/Image';
 
+const PAT = 'bed65abb53684b03911c673ab35f7e12';
+const USER_ID = 'abdullahmoh';
+const APP_ID = 'Test';
+const MODEL_ID = 'face-detection';
+const MODEL_VERSION_ID = '6dc7e46bc9124c5c8824be4822abe105'
 
 const setupClarifai = (imageUrl) => {
-  const PAT = 'bed65abb53684b03911c673ab35f7e12';
-  const USER_ID = 'abdullahmoh';
-  const APP_ID = 'Test';
-  // Change these to whatever model and image URL you want to use
-  const MODEL_ID = 'face-detection';
-  const IMAGE_URL = imageUrl;
-
   const raw = JSON.stringify({
     "user_app_id": {
       "user_id": USER_ID,
@@ -26,7 +23,7 @@ const setupClarifai = (imageUrl) => {
       {
         "data": {
           "image": {
-            "url": IMAGE_URL
+            "url": imageUrl
           }
         }
       }
@@ -51,8 +48,9 @@ class App extends Component {
   constructor() {
     super()
     this.state = {
-      input: " ",
-      imageUrl: " "
+      input: "",
+      imageUrl: "",
+      box: {}
     }
   }
 
@@ -62,10 +60,28 @@ class App extends Component {
 
   onButtonSubmit = () => {
     this.setState({ imageUrl: this.state.input })
-    fetch("https://api.clarifai.com/v2/models/" + "face-detection" + "/outputs", setupClarifai)
-      .then(response => response.text())
-      .then(result => console.log(result))
+    fetch("https://api.clarifai.com/v2/models/" + MODEL_ID + "/versions/" + MODEL_VERSION_ID + "/outputs", setupClarifai(this.state.input))
+      .then(response => response.json())
+      .then(location => this.displayFaceBox(this.calculateFaceLocation(location)))
       .catch(error => console.log('error', error));
+
+  }
+
+  calculateFaceLocation = (date) => {
+    const clarifaiFace = date.outputs[0].data.regions[0].region_info.bounding_box;
+    const image = document.getElementById('inputimage');
+    const width = Number(image.width);
+    const height = Number(image.height);
+    return {
+      leftCol: clarifaiFace.left_col * width,
+      topRow: clarifaiFace.top_row * height,
+      rightCol: width - (clarifaiFace.right_col * width),
+      bottomRow: height - (clarifaiFace.bottom_row * height)
+    }
+  }
+
+  displayFaceBox = (box) => {
+    this.setState({ box: box })
   }
 
   render() {
@@ -76,7 +92,7 @@ class App extends Component {
         <Rank />
         <ParticlesBg type="cobweb" bg={true} />
         <Image oninputChange={this.oninputChange} onButtonSubmit={this.onButtonSubmit} />
-        <FaceRecognition imageUrl={this.state.imageUrl} />
+        <FaceRecognition imageUrl={this.state.imageUrl} box={this.state.box} />
       </div>
     )
   }
