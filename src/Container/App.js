@@ -5,6 +5,7 @@ import FaceRecognition from '../Component/FaceRecognition/faceRecognition';
 import ParticlesBg from 'particles-bg'
 import Image from '../Component/ImageFormLink/Image';
 import Rank from '../Component/Rank/Rank';
+import SignIn from '../Component/signin/signIn';
 import { Component } from 'react';
 
 const PAT = 'bed65abb53684b03911c673ab35f7e12';
@@ -50,8 +51,11 @@ class App extends Component {
     this.state = {
       input: "",
       imageUrl: "",
-      box: {}
+      box: {},
+      route: "home",
+      isSignedIn: false
     }
+    this.onImageLoad = this.onImageLoad.bind(this);
   }
 
   oninputChange = (event) => {
@@ -59,12 +63,20 @@ class App extends Component {
   }
 
   onButtonSubmit = () => {
-    this.setState({ imageUrl: this.state.input })
+    this.setState({ imageUrl: this.state.input });
+    this.setState({ box: {} });
+  }
+
+  onImageLoad = () => {
     fetch("https://api.clarifai.com/v2/models/" + MODEL_ID + "/versions/" + MODEL_VERSION_ID + "/outputs", setupClarifai(this.state.input))
       .then(response => response.json())
-      .then(location => this.displayFaceBox(this.calculateFaceLocation(location)))
+      .then(response => {
+        if (response && response.outputs) {
+          const faceData = this.calculateFaceLocation(response);
+          this.displayFaceBox(faceData);
+        }
+      })
       .catch(error => console.log('error', error));
-
   }
 
   calculateFaceLocation = (date) => {
@@ -88,11 +100,12 @@ class App extends Component {
     return (
       <div>
         <Navigation />
+        <SignIn />
         <Logo />
         <Rank />
         <ParticlesBg type="cobweb" bg={true} />
         <Image oninputChange={this.oninputChange} onButtonSubmit={this.onButtonSubmit} />
-        <FaceRecognition imageUrl={this.state.imageUrl} box={this.state.box} />
+        <FaceRecognition imageUrl={this.state.imageUrl} box={this.state.box} onImageLoad={this.onImageLoad} />
       </div>
     )
   }
