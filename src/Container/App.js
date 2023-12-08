@@ -58,6 +58,16 @@ class App extends Component {
     this.onImageLoad = this.onImageLoad.bind(this);
   }
 
+  componentDidMount() {
+    fetch('http://localhost:3001/')
+      .then(response => response.json())
+      .then(console.log);
+  }
+
+  onRouteChange = () => {
+    this.setState({ route: 'home' })
+  }
+
   oninputChange = (event) => {
     this.setState({ input: event.target.value });
   }
@@ -100,12 +110,15 @@ class App extends Component {
     return (
       <div>
         <Navigation />
-        <SignIn />
-        <Logo />
-        <Rank />
         <ParticlesBg type="cobweb" bg={true} />
-        <Image oninputChange={this.oninputChange} onButtonSubmit={this.onButtonSubmit} />
-        <FaceRecognition imageUrl={this.state.imageUrl} box={this.state.box} onImageLoad={this.onImageLoad} />
+        {this.state.route === 'signin'
+          ? <SignIn />
+          :
+          <div>
+            <Logo />
+            <Rank />
+            <Image oninputChange={this.oninputChange} onButtonSubmit={this.onButtonSubmit} />
+            <FaceRecognition imageUrl={this.state.imageUrl} box={this.state.box} onImageLoad={this.onImageLoad} /></div>}
       </div>
     )
   }
