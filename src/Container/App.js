@@ -58,14 +58,8 @@ class App extends Component {
     this.onImageLoad = this.onImageLoad.bind(this);
   }
 
-  componentDidMount() {
-    fetch('http://localhost:3001/')
-      .then(response => response.json())
-      .then(console.log);
-  }
-
   onRouteChange = () => {
-    this.setState({ route: 'home' })
+    this.setState({ route: 'signin' })
   }
 
   oninputChange = (event) => {
